@@ -1,104 +1,124 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Bloxburg Resort Rooms</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <title>Bloxburg Resort Room Panel</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <style>
+    :root {
+      --bg: #1e1f24;
+      --card: #2c2f36;
+      --text: #f1f1f1;
+      --accent: #00c983;
+      --danger: #ff5c5c;
+      --muted: #999;
+    }
+
     body {
-      font-family: Arial, sans-serif;
-      background: #f0f2f5;
+      margin: 0;
+      font-family: system-ui, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
       padding: 2rem;
-      max-width: 800px;
-      margin: auto;
-      color: #333;
     }
 
     h1 {
       text-align: center;
-      color: #2e3b4e;
+      font-size: 2rem;
       margin-bottom: 2rem;
     }
 
-    .room {
-      background: white;
-      border-radius: 12px;
-      padding: 1.5rem;
-      margin-bottom: 1.5rem;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1.5rem;
+      max-width: 1000px;
+      margin: 0 auto;
     }
 
-    .room-header {
+    .room {
+      background-color: var(--card);
+      border: 1px solid #444;
+      border-radius: 12px;
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 1rem;
     }
 
-    .room-header h2 {
-      margin: 0;
-      font-size: 1.2rem;
-    }
-
-    .status {
-      padding: 0.4rem 0.8rem;
-      border-radius: 20px;
-      font-size: 0.9rem;
+    .room-title {
+      font-size: 1.1rem;
       font-weight: bold;
     }
 
+    .status {
+      padding: 0.3rem 0.6rem;
+      border-radius: 999px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
     .vacant {
-      background: #d4edda;
-      color: #155724;
+      background-color: rgba(0, 201, 131, 0.1);
+      color: var(--accent);
+      border: 1px solid var(--accent);
     }
 
     .occupied {
-      background: #f8d7da;
-      color: #721c24;
+      background-color: rgba(255, 92, 92, 0.1);
+      color: var(--danger);
+      border: 1px solid var(--danger);
     }
 
-    .toggle-btn {
-      padding: 0.4rem 0.8rem;
-      font-size: 0.9rem;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      background: #007bff;
-      color: white;
-      margin-left: 1rem;
-    }
-
-    .toggle-btn:hover {
-      background: #0056b3;
-    }
-
-    .username-field {
-      display: flex;
-      flex-direction: column;
-      margin-top: 1rem;
+    .username-field label {
+      font-size: 0.85rem;
+      color: var(--muted);
+      margin-bottom: 0.3rem;
+      display: block;
     }
 
     .username-field input {
+      width: 100%;
       padding: 0.5rem;
-      font-size: 1rem;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-    }
-
-    .username-label {
-      margin-bottom: 0.3rem;
       font-size: 0.9rem;
+      font-family: monospace;
+      border: 1px solid #555;
+      border-radius: 6px;
+      background: #1b1c20;
+      color: var(--text);
     }
 
     .username-field input:disabled {
-      background-color: #eee;
+      background-color: #333;
+      color: #777;
+    }
+
+    .toggle-btn {
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      padding: 0.5rem;
+      cursor: pointer;
+      font-size: 0.9rem;
+      transition: background 0.2s;
+    }
+
+    .toggle-btn:hover {
+      background-color: #005ec4;
     }
   </style>
 </head>
 <body>
-  <h1>🏨 Bloxburg Resort Room Manager</h1>
-
-  <div id="roomList"></div>
+  <h1>🏨 Resort Room Control Panel</h1>
+  <div class="grid" id="roomList"></div>
 
   <script>
     const roomCount = 6;
@@ -116,66 +136,67 @@
     }
 
     function createRoomElement(roomId) {
-      const container = document.createElement("div");
-      container.className = "room";
+      const room = document.createElement("div");
+      room.className = "room";
 
       const header = document.createElement("div");
-      header.className = "room-header";
+      header.className = "header";
 
-      const title = document.createElement("h2");
+      const title = document.createElement("div");
+      title.className = "room-title";
       title.textContent = `Room ${roomId}`;
 
       const statusSpan = document.createElement("span");
       statusSpan.className = "status";
 
-      const button = document.createElement("button");
-      button.className = "toggle-btn";
+      header.appendChild(title);
+      header.appendChild(statusSpan);
 
       const usernameField = document.createElement("div");
       usernameField.className = "username-field";
 
       const label = document.createElement("label");
-      label.className = "username-label";
       label.textContent = "Occupant Username:";
-
       const input = document.createElement("input");
       input.type = "text";
-      input.placeholder = "Enter username";
+      input.placeholder = "Leave blank if vacant";
 
       usernameField.appendChild(label);
       usernameField.appendChild(input);
 
-      const { status, username } = getRoomData(roomId);
-      input.value = username;
+      const button = document.createElement("button");
+      button.className = "toggle-btn";
 
-      function updateUI(currentStatus) {
-        statusSpan.textContent = currentStatus.charAt(0).toUpperCase() + currentStatus.slice(1);
-        statusSpan.className = `status ${currentStatus}`;
-        button.textContent = currentStatus === 'vacant' ? 'Mark Occupied' : 'Mark Vacant';
-        input.disabled = currentStatus === 'vacant';
-        if (currentStatus === 'vacant') input.value = '';
+      function updateUI(status, username = '') {
+        statusSpan.textContent = status.toUpperCase();
+        statusSpan.className = `status ${status}`;
+        button.textContent = status === 'vacant' ? 'Mark Occupied' : 'Mark Vacant';
+        input.disabled = status === 'vacant';
+        if (status === 'vacant') input.value = '';
+        else input.value = username;
       }
 
-      updateUI(status);
+      let { status, username } = getRoomData(roomId);
+      updateUI(status, username);
 
       button.onclick = () => {
-        const newStatus = statusSpan.textContent.toLowerCase() === 'vacant' ? 'occupied' : 'vacant';
-        updateUI(newStatus);
-        saveRoomData(roomId, newStatus, newStatus === 'vacant' ? '' : input.value);
+        const currentStatus = statusSpan.textContent.toLowerCase();
+        const newStatus = currentStatus === 'vacant' ? 'occupied' : 'vacant';
+        const newUsername = newStatus === 'vacant' ? '' : input.value;
+        updateUI(newStatus, newUsername);
+        saveRoomData(roomId, newStatus, newUsername);
       };
 
       input.addEventListener("input", () => {
-        if (statusSpan.textContent.toLowerCase() === 'occupied') {
+        if (!input.disabled) {
           saveRoomData(roomId, 'occupied', input.value);
         }
       });
 
-      header.appendChild(title);
-      header.appendChild(statusSpan);
-      header.appendChild(button);
-      container.appendChild(header);
-      container.appendChild(usernameField);
-      return container;
+      room.appendChild(header);
+      room.appendChild(usernameField);
+      room.appendChild(button);
+      return room;
     }
 
     for (let i = 1; i <= roomCount; i++) {
