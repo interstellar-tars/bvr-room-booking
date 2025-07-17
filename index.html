@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Resort Room Status</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f0f2f5;
+      color: #333;
+      padding: 2rem;
+      max-width: 700px;
+      margin: auto;
+    }
+
+    h1 {
+      text-align: center;
+      color: #2e3b4e;
+    }
+
+    .room {
+      background: white;
+      border-radius: 12px;
+      padding: 1rem 1.5rem;
+      margin: 1rem 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+    }
+
+    .status {
+      padding: 0.4rem 0.8rem;
+      border-radius: 20px;
+      font-size: 0.9rem;
+      font-weight: bold;
+    }
+
+    .vacant {
+      background: #d4edda;
+      color: #155724;
+    }
+
+    .occupied {
+      background: #f8d7da;
+      color: #721c24;
+    }
+
+    .toggle-btn {
+      padding: 0.4rem 0.8rem;
+      font-size: 0.9rem;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      background: #007bff;
+      color: white;
+    }
+
+    .toggle-btn:hover {
+      background: #0056b3;
+    }
+  </style>
+</head>
+<body>
+  <h1>🏨 Bloxburg Resort - Room Status</h1>
+
+  <div id="roomList"></div>
+
+  <script>
+    const roomCount = 6;
+    const roomList = document.getElementById("roomList");
+
+    function getRoomStatus(roomId) {
+      return localStorage.getItem(`room_${roomId}`) || 'vacant';
+    }
+
+    function setRoomStatus(roomId, status) {
+      localStorage.setItem(`room_${roomId}`, status);
+    }
+
+    function createRoomElement(roomId) {
+      const container = document.createElement("div");
+      container.className = "room";
+
+      const label = document.createElement("div");
+      label.textContent = `Room ${roomId}`;
+
+      const statusSpan = document.createElement("span");
+      statusSpan.className = "status";
+      
+      const button = document.createElement("button");
+      button.className = "toggle-btn";
+
+      function updateUI(status) {
+        statusSpan.textContent = status.charAt(0).toUpperCase() + status.slice(1);
+        statusSpan.className = `status ${status}`;
+        button.textContent = status === 'vacant' ? 'Mark Occupied' : 'Mark Vacant';
+      }
+
+      const savedStatus = getRoomStatus(roomId);
+      updateUI(savedStatus);
+
+      button.onclick = () => {
+        const newStatus = statusSpan.textContent.toLowerCase() === 'vacant' ? 'occupied' : 'vacant';
+        setRoomStatus(roomId, newStatus);
+        updateUI(newStatus);
+      };
+
+      container.appendChild(label);
+      container.appendChild(statusSpan);
+      container.appendChild(button);
+
+      return container;
+    }
+
+    for (let i = 1; i <= roomCount; i++) {
+      roomList.appendChild(createRoomElement(i));
+    }
+  </script>
+</body>
+</html>
