@@ -1,103 +1,226 @@
-<script>
-const roomCount = 6;
-const roomList = document.getElementById("roomList");
-const apiBase = "https://rooms.example.workers.dev";
-
-const state = {};
-
-async function fetchRoomStates() {
-  const res = await fetch(`${apiBase}/rooms`);
-  const data = await res.json();
-  for (let i = 1; i <= roomCount; i++) {
-    const roomKey = `room_${i}`;
-    const room = state[roomKey];
-    if (room) {
-      room.status = data[roomKey].status;
-      room.username = data[roomKey].username;
-      room.updateUI();
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Bloxburg Resort Room Panel</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    :root {
+      --bg: #1e1f24;
+      --card: #2c2f36;
+      --text: #f1f1f1;
+      --accent: #00c983;
+      --danger: #ff5c5c;
+      --muted: #999;
     }
-  }
-}
 
-async function updateRoom(roomId, status, username) {
-  await fetch(`${apiBase}/update`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ roomId: `room_${roomId}`, status, username }),
-  });
-}
-
-function createRoomElement(roomId) {
-  const roomKey = `room_${roomId}`;
-  const container = document.createElement("div");
-  container.className = "room";
-
-  const header = document.createElement("div");
-  header.className = "header";
-
-  const title = document.createElement("div");
-  title.className = "room-title";
-  title.textContent = `Room ${roomId}`;
-
-  const statusSpan = document.createElement("span");
-  statusSpan.className = "status";
-
-  const usernameField = document.createElement("div");
-  usernameField.className = "username-field";
-
-  const label = document.createElement("label");
-  label.textContent = "Occupant Username:";
-  const input = document.createElement("input");
-  input.type = "text";
-  usernameField.appendChild(label);
-  usernameField.appendChild(input);
-
-  const button = document.createElement("button");
-  button.className = "toggle-btn";
-
-  const room = {
-    status: "vacant",
-    username: "",
-    updateUI: function () {
-      statusSpan.textContent = this.status.toUpperCase();
-      statusSpan.className = `status ${this.status}`;
-      button.textContent = this.status === "vacant" ? "Mark Occupied" : "Mark Vacant";
-      input.disabled = this.status === "vacant";
-      input.value = this.status === "vacant" ? "" : this.username;
-    },
-  };
-
-  button.onclick = async () => {
-    const newStatus = room.status === "vacant" ? "occupied" : "vacant";
-    const newUsername = newStatus === "occupied" ? input.value : "";
-    room.status = newStatus;
-    room.username = newUsername;
-    room.updateUI();
-    await updateRoom(roomId, newStatus, newUsername);
-  };
-
-  input.oninput = async () => {
-    if (!input.disabled) {
-      room.username = input.value;
-      await updateRoom(roomId, room.status, input.value);
+    body {
+      margin: 0;
+      font-family: system-ui, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      padding: 2rem;
     }
-  };
 
-  roomList.appendChild(container);
-  container.appendChild(header);
-  header.appendChild(title);
-  header.appendChild(statusSpan);
-  container.appendChild(usernameField);
-  container.appendChild(button);
+    h1 {
+      text-align: center;
+      font-size: 2rem;
+      margin-bottom: 2rem;
+    }
 
-  state[roomKey] = room;
-  return room;
-}
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1.5rem;
+      max-width: 1000px;
+      margin: 0 auto;
+    }
 
-for (let i = 1; i <= roomCount; i++) {
-  createRoomElement(i);
-}
+    .room {
+      background-color: var(--card);
+      border: 1px solid #444;
+      border-radius: 12px;
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
 
-fetchRoomStates();
-setInterval(fetchRoomStates, 5000);
-</script>
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .room-title {
+      font-size: 1.1rem;
+      font-weight: bold;
+    }
+
+    .status {
+      padding: 0.3rem 0.6rem;
+      border-radius: 999px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
+    .vacant {
+      background-color: rgba(0, 201, 131, 0.1);
+      color: var(--accent);
+      border: 1px solid var(--accent);
+    }
+
+    .occupied {
+      background-color: rgba(255, 92, 92, 0.1);
+      color: var(--danger);
+      border: 1px solid var(--danger);
+    }
+
+    .username-field label {
+      font-size: 0.85rem;
+      color: var(--muted);
+      margin-bottom: 0.3rem;
+      display: block;
+    }
+
+    .username-field input {
+      width: 100%;
+      padding: 0.5rem;
+      font-size: 0.9rem;
+      font-family: monospace;
+      border: 1px solid #555;
+      border-radius: 6px;
+      background: #1b1c20;
+      color: var(--text);
+    }
+
+    .username-field input:disabled {
+      background-color: #333;
+      color: #777;
+    }
+
+    .toggle-btn {
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      padding: 0.5rem;
+      cursor: pointer;
+      font-size: 0.9rem;
+      transition: background 0.2s;
+    }
+
+    .toggle-btn:hover {
+      background-color: #005ec4;
+    }
+  </style>
+</head>
+<body>
+  <h1>🏨 Resort Room Control Panel</h1>
+  <div class="grid" id="roomList"></div>
+
+  <script>
+    const roomCount = 6;
+    const roomList = document.getElementById("roomList");
+    const apiBase = "https://bvr-rooms.cubiodojo.workers.dev"; 
+    const state = {};
+
+    async function fetchRoomStates() {
+      const res = await fetch(`${apiBase}/rooms`);
+      const data = await res.json();
+      for (let i = 1; i <= roomCount; i++) {
+        const roomKey = `room_${i}`;
+        const room = state[roomKey];
+        if (room) {
+          room.status = data[roomKey].status;
+          room.username = data[roomKey].username;
+          room.updateUI();
+        }
+      }
+    }
+
+    async function updateRoom(roomId, status, username) {
+      await fetch(`${apiBase}/update`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ roomId: `room_${roomId}`, status, username })
+      });
+    }
+
+    function createRoomElement(roomId) {
+      const roomKey = `room_${roomId}`;
+      const container = document.createElement("div");
+      container.className = "room";
+
+      const header = document.createElement("div");
+      header.className = "header";
+
+      const title = document.createElement("div");
+      title.className = "room-title";
+      title.textContent = `Room ${roomId}`;
+
+      const statusSpan = document.createElement("span");
+      statusSpan.className = "status";
+
+      const usernameField = document.createElement("div");
+      usernameField.className = "username-field";
+
+      const label = document.createElement("label");
+      label.textContent = "Occupant Username:";
+      const input = document.createElement("input");
+      input.type = "text";
+      usernameField.appendChild(label);
+      usernameField.appendChild(input);
+
+      const button = document.createElement("button");
+      button.className = "toggle-btn";
+
+      const room = {
+        status: "vacant",
+        username: "",
+        updateUI: function () {
+          statusSpan.textContent = this.status.toUpperCase();
+          statusSpan.className = `status ${this.status}`;
+          button.textContent = this.status === "vacant" ? "Mark Occupied" : "Mark Vacant";
+          input.disabled = this.status === "vacant";
+          input.value = this.status === "vacant" ? "" : this.username;
+        }
+      };
+
+      button.onclick = async () => {
+        const newStatus = room.status === "vacant" ? "occupied" : "vacant";
+        const newUsername = newStatus === "occupied" ? input.value : "";
+        room.status = newStatus;
+        room.username = newUsername;
+        room.updateUI();
+        await updateRoom(roomId, newStatus, newUsername);
+      };
+
+      input.oninput = async () => {
+        if (!input.disabled) {
+          room.username = input.value;
+          await updateRoom(roomId, room.status, input.value);
+        }
+      };
+
+      roomList.appendChild(container);
+      container.appendChild(header);
+      header.appendChild(title);
+      header.appendChild(statusSpan);
+      container.appendChild(usernameField);
+      container.appendChild(button);
+
+      state[roomKey] = room;
+      return room;
+    }
+
+    for (let i = 1; i <= roomCount; i++) {
+      createRoomElement(i);
+    }
+
+    fetchRoomStates();
+    setInterval(fetchRoomStates, 5000);
+  </script>
+</body>
+</html>
