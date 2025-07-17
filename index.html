@@ -2,32 +2,42 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Resort Room Status</title>
+  <title>Bloxburg Resort Rooms</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
     body {
       font-family: Arial, sans-serif;
       background: #f0f2f5;
-      color: #333;
       padding: 2rem;
-      max-width: 700px;
+      max-width: 800px;
       margin: auto;
+      color: #333;
     }
 
     h1 {
       text-align: center;
       color: #2e3b4e;
+      margin-bottom: 2rem;
     }
 
     .room {
       background: white;
       border-radius: 12px;
-      padding: 1rem 1.5rem;
-      margin: 1rem 0;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+
+    .room-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+      margin-bottom: 1rem;
+    }
+
+    .room-header h2 {
+      margin: 0;
+      font-size: 1.2rem;
     }
 
     .status {
@@ -55,15 +65,38 @@
       cursor: pointer;
       background: #007bff;
       color: white;
+      margin-left: 1rem;
     }
 
     .toggle-btn:hover {
       background: #0056b3;
     }
+
+    .username-field {
+      display: flex;
+      flex-direction: column;
+      margin-top: 1rem;
+    }
+
+    .username-field input {
+      padding: 0.5rem;
+      font-size: 1rem;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+
+    .username-label {
+      margin-bottom: 0.3rem;
+      font-size: 0.9rem;
+    }
+
+    .username-field input:disabled {
+      background-color: #eee;
+    }
   </style>
 </head>
 <body>
-  <h1>🏨 Bloxburg Resort - Room Status</h1>
+  <h1>🏨 Bloxburg Resort Room Manager</h1>
 
   <div id="roomList"></div>
 
@@ -71,46 +104,77 @@
     const roomCount = 6;
     const roomList = document.getElementById("roomList");
 
-    function getRoomStatus(roomId) {
-      return localStorage.getItem(`room_${roomId}`) || 'vacant';
+    function getRoomData(roomId) {
+      const status = localStorage.getItem(`room_${roomId}_status`) || 'vacant';
+      const username = localStorage.getItem(`room_${roomId}_username`) || '';
+      return { status, username };
     }
 
-    function setRoomStatus(roomId, status) {
-      localStorage.setItem(`room_${roomId}`, status);
+    function saveRoomData(roomId, status, username) {
+      localStorage.setItem(`room_${roomId}_status`, status);
+      localStorage.setItem(`room_${roomId}_username`, username);
     }
 
     function createRoomElement(roomId) {
       const container = document.createElement("div");
       container.className = "room";
 
-      const label = document.createElement("div");
-      label.textContent = `Room ${roomId}`;
+      const header = document.createElement("div");
+      header.className = "room-header";
+
+      const title = document.createElement("h2");
+      title.textContent = `Room ${roomId}`;
 
       const statusSpan = document.createElement("span");
       statusSpan.className = "status";
-      
+
       const button = document.createElement("button");
       button.className = "toggle-btn";
 
-      function updateUI(status) {
-        statusSpan.textContent = status.charAt(0).toUpperCase() + status.slice(1);
-        statusSpan.className = `status ${status}`;
-        button.textContent = status === 'vacant' ? 'Mark Occupied' : 'Mark Vacant';
+      const usernameField = document.createElement("div");
+      usernameField.className = "username-field";
+
+      const label = document.createElement("label");
+      label.className = "username-label";
+      label.textContent = "Occupant Username:";
+
+      const input = document.createElement("input");
+      input.type = "text";
+      input.placeholder = "Enter username";
+
+      usernameField.appendChild(label);
+      usernameField.appendChild(input);
+
+      const { status, username } = getRoomData(roomId);
+      input.value = username;
+
+      function updateUI(currentStatus) {
+        statusSpan.textContent = currentStatus.charAt(0).toUpperCase() + currentStatus.slice(1);
+        statusSpan.className = `status ${currentStatus}`;
+        button.textContent = currentStatus === 'vacant' ? 'Mark Occupied' : 'Mark Vacant';
+        input.disabled = currentStatus === 'vacant';
+        if (currentStatus === 'vacant') input.value = '';
       }
 
-      const savedStatus = getRoomStatus(roomId);
-      updateUI(savedStatus);
+      updateUI(status);
 
       button.onclick = () => {
         const newStatus = statusSpan.textContent.toLowerCase() === 'vacant' ? 'occupied' : 'vacant';
-        setRoomStatus(roomId, newStatus);
         updateUI(newStatus);
+        saveRoomData(roomId, newStatus, newStatus === 'vacant' ? '' : input.value);
       };
 
-      container.appendChild(label);
-      container.appendChild(statusSpan);
-      container.appendChild(button);
+      input.addEventListener("input", () => {
+        if (statusSpan.textContent.toLowerCase() === 'occupied') {
+          saveRoomData(roomId, 'occupied', input.value);
+        }
+      });
 
+      header.appendChild(title);
+      header.appendChild(statusSpan);
+      header.appendChild(button);
+      container.appendChild(header);
+      container.appendChild(usernameField);
       return container;
     }
 
