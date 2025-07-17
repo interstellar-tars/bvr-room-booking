@@ -121,106 +121,108 @@
   <div class="grid" id="roomList"></div>
 
   <script>
-    const roomCount = 6;
-    const roomList = document.getElementById("roomList");
-    const apiBase = "https://bvr-rooms.cubiodojo.workers.dev"; 
-    const state = {};
+document.addEventListener("DOMContentLoaded", () => {
+  const roomCount = 6;
+  const roomList = document.getElementById("roomList");
+  const apiBase = "https://bvr-rooms.cubiodojo.workers.dev"; 
 
-    async function fetchRoomStates() {
-      const res = await fetch(`${apiBase}/rooms`);
-      const data = await res.json();
-      for (let i = 1; i <= roomCount; i++) {
-        const roomKey = `room_${i}`;
-        const room = state[roomKey];
-        if (room) {
-          room.status = data[roomKey].status;
-          room.username = data[roomKey].username;
-          room.updateUI();
-        }
+  const state = {};
+
+  async function fetchRoomStates() {
+    const res = await fetch(`${apiBase}/rooms`);
+    const data = await res.json();
+    for (let i = 1; i <= roomCount; i++) {
+      const roomKey = `room_${i}`;
+      const room = state[roomKey];
+      if (room) {
+        room.status = data[roomKey].status;
+        room.username = data[roomKey].username;
+        room.updateUI();
       }
     }
+  }
 
-    async function updateRoom(roomId, status, username) {
-      await fetch(`${apiBase}/update`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ roomId: `room_${roomId}`, status, username })
-      });
-    }
+  async function updateRoom(roomId, status, username) {
+    await fetch(`${apiBase}/update`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ roomId: `room_${roomId}`, status, username })
+    });
+  }
 
-    function createRoomElement(roomId) {
-      const roomKey = `room_${roomId}`;
-      const container = document.createElement("div");
-      container.className = "room";
+  function createRoomElement(roomId) {
+    const roomKey = `room_${roomId}`;
+    const container = document.createElement("div");
+    container.className = "room";
 
-      const header = document.createElement("div");
-      header.className = "header";
+    const header = document.createElement("div");
+    header.className = "header";
 
-      const title = document.createElement("div");
-      title.className = "room-title";
-      title.textContent = `Room ${roomId}`;
+    const title = document.createElement("div");
+    title.className = "room-title";
+    title.textContent = `Room ${roomId}`;
 
-      const statusSpan = document.createElement("span");
-      statusSpan.className = "status";
+    const statusSpan = document.createElement("span");
+    statusSpan.className = "status";
 
-      const usernameField = document.createElement("div");
-      usernameField.className = "username-field";
+    const usernameField = document.createElement("div");
+    usernameField.className = "username-field";
 
-      const label = document.createElement("label");
-      label.textContent = "Occupant Username:";
-      const input = document.createElement("input");
-      input.type = "text";
-      usernameField.appendChild(label);
-      usernameField.appendChild(input);
+    const label = document.createElement("label");
+    label.textContent = "Occupant Username:";
+    const input = document.createElement("input");
+    input.type = "text";
+    usernameField.appendChild(label);
+    usernameField.appendChild(input);
 
-      const button = document.createElement("button");
-      button.className = "toggle-btn";
+    const button = document.createElement("button");
+    button.className = "toggle-btn";
 
-      const room = {
-        status: "vacant",
-        username: "",
-        updateUI: function () {
-          statusSpan.textContent = this.status.toUpperCase();
-          statusSpan.className = `status ${this.status}`;
-          button.textContent = this.status === "vacant" ? "Mark Occupied" : "Mark Vacant";
-          input.disabled = this.status === "vacant";
-          input.value = this.status === "vacant" ? "" : this.username;
-        }
-      };
+    const room = {
+      status: "vacant",
+      username: "",
+      updateUI: function () {
+        statusSpan.textContent = this.status.toUpperCase();
+        statusSpan.className = `status ${this.status}`;
+        button.textContent = this.status === "vacant" ? "Mark Occupied" : "Mark Vacant";
+        input.disabled = this.status === "vacant";
+        input.value = this.status === "vacant" ? "" : this.username;
+      }
+    };
 
-      button.onclick = async () => {
-        const newStatus = room.status === "vacant" ? "occupied" : "vacant";
-        const newUsername = newStatus === "occupied" ? input.value : "";
-        room.status = newStatus;
-        room.username = newUsername;
-        room.updateUI();
-        await updateRoom(roomId, newStatus, newUsername);
-      };
+    button.onclick = async () => {
+      const newStatus = room.status === "vacant" ? "occupied" : "vacant";
+      const newUsername = newStatus === "occupied" ? input.value : "";
+      room.status = newStatus;
+      room.username = newUsername;
+      room.updateUI();
+      await updateRoom(roomId, newStatus, newUsername);
+    };
 
-      input.oninput = async () => {
-        if (!input.disabled) {
-          room.username = input.value;
-          await updateRoom(roomId, room.status, input.value);
-        }
-      };
+    input.oninput = async () => {
+      if (!input.disabled) {
+        room.username = input.value;
+        await updateRoom(roomId, room.status, input.value);
+      }
+    };
 
-      roomList.appendChild(container);
-      container.appendChild(header);
-      header.appendChild(title);
-      header.appendChild(statusSpan);
-      container.appendChild(usernameField);
-      container.appendChild(button);
+    roomList.appendChild(container);
+    container.appendChild(header);
+    header.appendChild(title);
+    header.appendChild(statusSpan);
+    container.appendChild(usernameField);
+    container.appendChild(button);
 
-      state[roomKey] = room;
-      return room;
-    }
+    state[roomKey] = room;
+  }
 
-    for (let i = 1; i <= roomCount; i++) {
-      createRoomElement(i);
-    }
+  for (let i = 1; i <= roomCount; i++) {
+    createRoomElement(i);
+  }
 
-    fetchRoomStates();
-    setInterval(fetchRoomStates, 5000);
-  </script>
+  fetchRoomStates();
+  setInterval(fetchRoomStates, 5000);
+});
+</script>
 </body>
 </html>
